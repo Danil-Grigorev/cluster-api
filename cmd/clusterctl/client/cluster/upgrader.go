@@ -46,6 +46,9 @@ type ProviderUpgrader interface {
 
 	// ApplyCustomPlan plan executes an upgrade using the UpgradeItems provided by the user.
 	ApplyCustomPlan(ctx context.Context, opts UpgradeOptions, providersToUpgrade ...UpgradeItem) error
+
+	// List returns the inventory items for all the provider instances installed in the cluster.
+	List(ctx context.Context) (*clusterctlv1.ProviderList, error)
 }
 
 // UpgradePlan defines a list of possible upgrade targets for a management cluster.
@@ -91,11 +94,15 @@ type providerUpgrader struct {
 
 var _ ProviderUpgrader = &providerUpgrader{}
 
+func (u *providerUpgrader) List(ctx context.Context) (*clusterctlv1.ProviderList, error) {
+	return u.providerInventory.List(ctx)
+}
+
 func (u *providerUpgrader) Plan(ctx context.Context) ([]UpgradePlan, error) {
 	log := logf.Log
 	log.Info("Checking new release availability...")
 
-	providerList, err := u.providerInventory.List(ctx)
+	providerList, err := u.List(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +166,7 @@ func (u *providerUpgrader) ApplyPlan(ctx context.Context, opts UpgradeOptions, c
 	log.Info("Performing upgrade...")
 
 	// Gets the upgrade plan for the selected API Version of Cluster API (contract).
-	providerList, err := u.providerInventory.List(ctx)
+	providerList, err := u.List(ctx)
 	if err != nil {
 		return err
 	}
@@ -224,7 +231,7 @@ func (u *providerUpgrader) createCustomPlan(ctx context.Context, upgradeItems []
 
 	// The target contract is derived from the current version of the core provider, or, if the core provider is included in the upgrade list,
 	// from its target version.
-	providerList, err := u.providerInventory.List(ctx)
+	providerList, err := u.List(ctx)
 	if err != nil {
 		return nil, err
 	}
