@@ -215,48 +215,17 @@ func (m *Machine) Create(ctx context.Context, image string, role string, version
 			return errors.New("cannot create a DockerMachine for a nil version")
 		}
 
-		semVer, err := semver.Parse(strings.TrimPrefix(*version, "v"))
-		if err != nil {
-			return errors.Wrap(err, "failed to parse DockerMachine version")
-		}
+		// semVer, err := semver.Parse(strings.TrimPrefix(*version, "v"))
+		// if err != nil {
+		// 	return errors.Wrap(err, "failed to parse DockerMachine version")
+		// }
 
-		kindMapping := kind.GetMapping(semVer, image)
+		// kindMapping := kind.GetMapping(semVer, image)
 
 		switch role {
-		case constants.ControlPlaneNodeRoleValue:
-			log.Info(fmt.Sprintf("Creating control plane machine container with image %s, mode %s", kindMapping.Image, kindMapping.Mode))
-			m.container, err = m.nodeCreator.CreateControlPlaneNode(
-				ctx,
-				m.ContainerName(),
-				m.cluster,
-				"127.0.0.1",
-				0,
-				kindMounts(mounts),
-				nil,
-				labels,
-				m.ipFamily,
-				kindMapping,
-			)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-		case constants.WorkerNodeRoleValue:
-			log.Info(fmt.Sprintf("Creating worker machine container with image %s, mode %s", kindMapping.Image, kindMapping.Mode))
-			m.container, err = m.nodeCreator.CreateWorkerNode(
-				ctx,
-				m.ContainerName(),
-				m.cluster,
-				kindMounts(mounts),
-				nil,
-				labels,
-				m.ipFamily,
-				kindMapping,
-			)
-			if err != nil {
-				return errors.WithStack(err)
-			}
 		default:
-			return errors.Errorf("unable to create machine for role %s", role)
+			return nil
+			// return errors.Errorf("unable to create machine for role %s", role)
 		}
 		// After creating a node we need to wait a small amount of time until crictl does not return an error.
 		// This fixes an issue where we try to kubeadm init too quickly after creating the container.
