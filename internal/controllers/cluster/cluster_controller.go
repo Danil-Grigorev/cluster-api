@@ -314,7 +314,7 @@ func (r *Reconciler) reconcileDelete(ctx context.Context, cluster *clusterv1.Clu
 	}
 
 	if cluster.Spec.ControlPlaneRef != nil {
-		obj, err := external.Get(ctx, r.Client, cluster.Spec.ControlPlaneRef, cluster.Namespace)
+		obj, err := external.Get(ctx, r.Client, cluster.Spec.ControlPlaneRef)
 		switch {
 		case apierrors.IsNotFound(errors.Cause(err)):
 			// All good - the control plane resource has been deleted
@@ -322,7 +322,7 @@ func (r *Reconciler) reconcileDelete(ctx context.Context, cluster *clusterv1.Clu
 		case err != nil:
 			return reconcile.Result{}, errors.Wrapf(err, "failed to get %s %q for Cluster %s/%s",
 				path.Join(cluster.Spec.ControlPlaneRef.APIVersion, cluster.Spec.ControlPlaneRef.Kind),
-				cluster.Spec.ControlPlaneRef.Name, cluster.Namespace, cluster.Name)
+				cluster.Spec.ControlPlaneRef.Name, cluster.Spec.ControlPlaneRef.Namespace, cluster.Name)
 		default:
 			// Report a summary of current status of the control plane object defined for this cluster.
 			conditions.SetMirror(cluster, clusterv1.ControlPlaneReadyCondition,
@@ -335,7 +335,7 @@ func (r *Reconciler) reconcileDelete(ctx context.Context, cluster *clusterv1.Clu
 			if err := r.Client.Delete(ctx, obj); err != nil {
 				return ctrl.Result{}, errors.Wrapf(err,
 					"failed to delete %v %q for Cluster %q in namespace %q",
-					obj.GroupVersionKind(), obj.GetName(), cluster.Name, cluster.Namespace)
+					obj.GroupVersionKind(), obj.GetName(), cluster.Name, obj.GetNamespace())
 			}
 
 			// Return here so we don't remove the finalizer yet.
@@ -345,7 +345,7 @@ func (r *Reconciler) reconcileDelete(ctx context.Context, cluster *clusterv1.Clu
 	}
 
 	if cluster.Spec.InfrastructureRef != nil {
-		obj, err := external.Get(ctx, r.Client, cluster.Spec.InfrastructureRef, cluster.Namespace)
+		obj, err := external.Get(ctx, r.Client, cluster.Spec.InfrastructureRef)
 		switch {
 		case apierrors.IsNotFound(errors.Cause(err)):
 			// All good - the infra resource has been deleted
@@ -353,7 +353,7 @@ func (r *Reconciler) reconcileDelete(ctx context.Context, cluster *clusterv1.Clu
 		case err != nil:
 			return ctrl.Result{}, errors.Wrapf(err, "failed to get %s %q for Cluster %s/%s",
 				path.Join(cluster.Spec.InfrastructureRef.APIVersion, cluster.Spec.InfrastructureRef.Kind),
-				cluster.Spec.InfrastructureRef.Name, cluster.Namespace, cluster.Name)
+				cluster.Spec.InfrastructureRef.Name, cluster.Spec.InfrastructureRef.Namespace, cluster.Name)
 		default:
 			// Report a summary of current status of the infrastructure object defined for this cluster.
 			conditions.SetMirror(cluster, clusterv1.InfrastructureReadyCondition,
@@ -366,7 +366,7 @@ func (r *Reconciler) reconcileDelete(ctx context.Context, cluster *clusterv1.Clu
 			if err := r.Client.Delete(ctx, obj); err != nil {
 				return ctrl.Result{}, errors.Wrapf(err,
 					"failed to delete %v %q for Cluster %q in namespace %q",
-					obj.GroupVersionKind(), obj.GetName(), cluster.Name, cluster.Namespace)
+					obj.GroupVersionKind(), obj.GetName(), cluster.Name, obj.GetNamespace())
 			}
 
 			// Return here so we don't remove the finalizer yet.

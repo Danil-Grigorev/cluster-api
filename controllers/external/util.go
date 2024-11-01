@@ -31,7 +31,7 @@ import (
 )
 
 // Get uses the client and reference to get an external, unstructured object.
-func Get(ctx context.Context, c client.Reader, ref *corev1.ObjectReference, _ string) (*unstructured.Unstructured, error) {
+func Get(ctx context.Context, c client.Reader, ref *corev1.ObjectReference) (*unstructured.Unstructured, error) {
 	if ref == nil {
 		return nil, errors.Errorf("cannot get object - object reference not set")
 	}
