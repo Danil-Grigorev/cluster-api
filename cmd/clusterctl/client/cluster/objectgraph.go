@@ -38,6 +38,7 @@ import (
 )
 
 const clusterTopologyNameKey = "cluster.spec.topology.class"
+const clusterTopologyNamespaceKey = "cluster.spec.topology.classNamespace"
 const clusterResourceSetBindingClusterNameKey = "clusterresourcesetbinding.spec.clustername"
 
 type empty struct{}
@@ -149,6 +150,7 @@ func (n *node) captureAdditionalInformation(obj *unstructured.Unstructured) erro
 				n.additionalInfo = map[string]interface{}{}
 			}
 			n.additionalInfo[clusterTopologyNameKey] = cluster.GetClassKey().Name
+			n.additionalInfo[clusterTopologyNamespaceKey] = cluster.GetClassKey().Namespace
 		}
 	}
 
@@ -620,7 +622,18 @@ func (o *objectGraph) setSoftOwnership() {
 		for _, cluster := range clusters {
 			// if the cluster uses a managed topology and uses the clusterclass
 			// set the clusterclass as a soft owner of the cluster.
-			if className, ok := cluster.additionalInfo[clusterTopologyNameKey]; ok {
+			className, hasName := cluster.additionalInfo[clusterTopologyNameKey]
+			classNamespace, hasNamespace := cluster.additionalInfo[clusterTopologyNamespaceKey]
+			if hasNamespace && hasName {
+				if className == clusterClass.identity.Name && clusterClass.identity.Namespace == classNamespace {
+					cluster.addSoftOwner(clusterClass)
+
+					// Set isGlobalHierarchy on clusterClass if is referenced from a different namespace
+					if classNamespace != cluster.identity.Namespace {
+						clusterClass.isGlobalHierarchy = true
+					}
+				}
+			} else if hasName {
 				if className == clusterClass.identity.Name && clusterClass.identity.Namespace == cluster.identity.Namespace {
 					cluster.addSoftOwner(clusterClass)
 				}

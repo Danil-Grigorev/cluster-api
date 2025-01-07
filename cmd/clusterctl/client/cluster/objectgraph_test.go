@@ -240,6 +240,7 @@ func TestObjectGraph_getDiscoveryTypeMetaList(t *testing.T) {
 type wantGraphItem struct {
 	virtual            bool
 	isGlobal           bool
+	isGlobalHierarchy  bool
 	forceMove          bool
 	forceMoveHierarchy bool
 	owners             []string
@@ -262,6 +263,7 @@ func assertGraph(t *testing.T, got *objectGraph, want wantGraph) {
 		g.Expect(ok).To(BeTrue(), "node %q not found", uid)
 		g.Expect(gotNode.virtual).To(Equal(wantNode.virtual), "node %q.virtual does not have the expected value", uid)
 		g.Expect(gotNode.isGlobal).To(Equal(wantNode.isGlobal), "node %q.isGlobal does not have the expected value", uid)
+		g.Expect(gotNode.isGlobalHierarchy).To(Equal(wantNode.isGlobalHierarchy), "node %q.isGlobalHierarchy does not have the expected value", uid)
 		g.Expect(gotNode.forceMove).To(Equal(wantNode.forceMove), "node %q.forceMove does not have the expected value", uid)
 		g.Expect(gotNode.forceMoveHierarchy).To(Equal(wantNode.forceMoveHierarchy), "node %q.forceMoveHierarchy does not have the expected value", uid)
 		g.Expect(gotNode.owners).To(HaveLen(len(wantNode.owners)), "node %q.owner does not have the expected length", uid)
@@ -1399,8 +1401,10 @@ var objectGraphsTests = []struct {
 					isGlobal:           true,
 					forceMove:          true,
 					forceMoveHierarchy: true,
+					isGlobalHierarchy:  true,
 				},
 				"/v1, Kind=Secret, infra1-system/infra1-identity-credentials": {
+					isGlobalHierarchy: true,
 					owners: []string{
 						"infrastructure.cluster.x-k8s.io/v1beta1, Kind=GenericClusterInfrastructureIdentity, infra1-identity",
 					},
@@ -2042,6 +2046,58 @@ func Test_objectGraph_setSoftOwnership(t *testing.T) {
 					"/v1, Kind=Secret, ns1/cluster1-kubeconfig": {
 						owners: []string{
 							"cluster.x-k8s.io/v1beta1, Kind=Cluster, ns1/cluster1",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "A different namespaced ClusterClass with a soft owned Cluster",
+			fields: fields{
+				objs: func() []client.Object {
+					objs := test.NewFakeClusterClass("ns1", "class1").Objs()
+					objs = append(objs, test.NewFakeCluster("ns2", "cluster1").WithTopologyClass("class1").WithTopologyClassNamespace("ns1").Objs()...)
+
+					return objs
+				}(),
+			},
+			want: wantGraph{
+				nodes: map[string]wantGraphItem{
+					"cluster.x-k8s.io/v1beta1, Kind=ClusterClass, ns1/class1": {
+						forceMove:          true,
+						forceMoveHierarchy: true,
+						isGlobalHierarchy:  true,
+					},
+					"infrastructure.cluster.x-k8s.io/v1beta1, Kind=GenericInfrastructureClusterTemplate, ns1/class1": {
+						owners: []string{
+							"cluster.x-k8s.io/v1beta1, Kind=ClusterClass, ns1/class1",
+						},
+					},
+					"controlplane.cluster.x-k8s.io/v1beta1, Kind=GenericControlPlaneTemplate, ns1/class1": {
+						owners: []string{
+							"cluster.x-k8s.io/v1beta1, Kind=ClusterClass, ns1/class1",
+						},
+					},
+					"cluster.x-k8s.io/v1beta1, Kind=Cluster, ns2/cluster1": {
+						forceMove:          true,
+						forceMoveHierarchy: true,
+						softOwners: []string{
+							"cluster.x-k8s.io/v1beta1, Kind=ClusterClass, ns1/class1", // NB. this cluster is not linked to the clusterclass through owner ref, but it is detected as soft ownership
+						},
+					},
+					"infrastructure.cluster.x-k8s.io/v1beta1, Kind=GenericInfrastructureCluster, ns2/cluster1": {
+						owners: []string{
+							"cluster.x-k8s.io/v1beta1, Kind=Cluster, ns2/cluster1",
+						},
+					},
+					"/v1, Kind=Secret, ns2/cluster1-ca": {
+						softOwners: []string{
+							"cluster.x-k8s.io/v1beta1, Kind=Cluster, ns2/cluster1", // NB. this secret is not linked to the cluster through owner ref, but it is detected as soft ownership
+						},
+					},
+					"/v1, Kind=Secret, ns2/cluster1-kubeconfig": {
+						owners: []string{
+							"cluster.x-k8s.io/v1beta1, Kind=Cluster, ns2/cluster1",
 						},
 					},
 				},
