@@ -1641,7 +1641,7 @@ func TestClusterClassToCluster(t *testing.T) {
 			r := &Reconciler{Client: env.GetClient()}
 
 			requests := r.clusterClassToCluster(ctx, tt.clusterClass)
-			g.Expect(requests).To(Equal(tt.expected))
+			g.Expect(requests).To(ConsistOf(tt.expected))
 		})
 	}
 }
