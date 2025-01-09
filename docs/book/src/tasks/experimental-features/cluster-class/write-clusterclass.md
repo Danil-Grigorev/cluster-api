@@ -15,7 +15,7 @@ flexible enough to be used in as many Clusters as possible by supporting variant
     * [Defining a custom naming strategy for MachineDeployment objects](#defining-a-custom-naming-strategy-for-machinedeployment-objects)
     * [Defining a custom naming strategy for MachinePool objects](#defining-a-custom-naming-strategy-for-machinepool-objects)
 * [Advanced features of ClusterClass with patches](#advanced-features-of-clusterclass-with-patches)
-    * [MachineDeployment variable overrides](#machinedeployment-variable-overrides)
+    * [MachineDeployment variable overrides](#machinedeployment-&-machinepool-variable-overrides)
     * [Builtin variables](#builtin-variables)
     * [Complex variable types](#complex-variable-types)
     * [Using variable values in JSON patches](#using-variable-values-in-json-patches)
@@ -477,7 +477,7 @@ Changing `classNamespace` is not supported in rebase procedure, while changing `
 
 #### Securing cross-namespace reference to the ClusterClass
 
-It is often desirable to restrict free cross-namespace `ClusterClass` access for the `Cluster` object. This can be implemented by defining a [`ValidatingAdmissionPolicy`](https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/) on the `Cluster` object.
+It is often desirable to restrict free cross-namespace `ClusterClass` access for the `Cluster` object. This can be implemented by defining a [`ValidatingAdmissionPolicy`](https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/#what-is-validating-admission-policy) on the `Cluster` object.
 
 An example of such policy may be:
 

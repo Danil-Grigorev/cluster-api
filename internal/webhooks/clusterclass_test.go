@@ -92,7 +92,7 @@ func TestClusterClassDefaultNamespaces(t *testing.T) {
 	fakeClient := fake.NewClientBuilder().
 		WithScheme(fakeScheme).
 		WithIndex(&clusterv1.Cluster{}, index.ClusterClassNameField, index.ClusterByClusterClassClassName).
-		WithIndex(&clusterv1.Cluster{}, index.ClusterClassNamespaceField, index.ClusterByClusterClassClassNamespace).
+		WithIndex(&clusterv1.Cluster{}, index.ClusterClassNamespaceField, index.ClusterByClusterClassNamespace).
 		Build()
 
 	// Create the webhook and add the fakeClient as its client.
@@ -1867,7 +1867,7 @@ func TestClusterClassValidation(t *testing.T) {
 			fakeClient := fake.NewClientBuilder().
 				WithScheme(fakeScheme).
 				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNameField, index.ClusterByClusterClassClassName).
-				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNamespaceField, index.ClusterByClusterClassClassNamespace).
+				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNamespaceField, index.ClusterByClusterClassNamespace).
 				Build()
 
 			// Pin the compatibility version used in variable CEL validation to 1.29, so we don't have to continuously refactor
@@ -2515,7 +2515,7 @@ func TestClusterClassValidationWithClusterAwareChecks(t *testing.T) {
 				WithScheme(fakeScheme).
 				WithObjects(tt.clusters...).
 				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNameField, index.ClusterByClusterClassClassName).
-				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNamespaceField, index.ClusterByClusterClassClassNamespace).
+				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNamespaceField, index.ClusterByClusterClassNamespace).
 				Build()
 
 			// Create the webhook and add the fakeClient as its client.
@@ -2569,7 +2569,7 @@ func TestGetClustersUsingClusterClass(t *testing.T) {
 				WithScheme(fakeScheme).
 				WithObjects(tt.clusters...).
 				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNameField, index.ClusterByClusterClassClassName).
-				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNamespaceField, index.ClusterByClusterClassClassNamespace).
+				WithIndex(&clusterv1.Cluster{}, index.ClusterClassNamespaceField, index.ClusterByClusterClassNamespace).
 				Build()
 
 			// Create the webhook and add the fakeClient as its client.

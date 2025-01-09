@@ -51,7 +51,7 @@ func ByClusterClassName(ctx context.Context, mgr ctrl.Manager) error {
 func ByClusterClassNamespace(ctx context.Context, mgr ctrl.Manager) error {
 	if err := mgr.GetCache().IndexField(ctx, &clusterv1.Cluster{},
 		ClusterClassNamespaceField,
-		ClusterByClusterClassClassNamespace,
+		ClusterByClusterClassNamespace,
 	); err != nil {
 		return errors.Wrap(err, "error setting index field")
 	}
@@ -70,11 +70,14 @@ func ClusterByClusterClassClassName(o client.Object) []string {
 	return nil
 }
 
-// ClusterByClusterClassClassNamespace contains the logic to index Clusters by ClusterClass namespace.
-func ClusterByClusterClassClassNamespace(o client.Object) []string {
+// ClusterByClusterClassNamespace contains the logic to index Clusters by ClusterClass namespace.
+func ClusterByClusterClassNamespace(o client.Object) []string {
 	cluster, ok := o.(*clusterv1.Cluster)
 	if !ok {
 		panic(fmt.Sprintf("Expected Cluster but got a %T", o))
 	}
-	return []string{cluster.GetClassKey().Namespace}
+	if cluster.Spec.Topology != nil {
+		return []string{cluster.GetClassKey().Namespace}
+	}
+	return nil
 }
